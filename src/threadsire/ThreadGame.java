@@ -32,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JViewport;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableCellRenderer;
 
@@ -49,7 +50,10 @@ public class ThreadGame extends Thread implements ActionListener{
     private JTextField txtRisultato;
     private Timer timer;
     private int seconds;
+    private int pos;
     private JLabel textTimer;
+    private JTable table;
+    private JScrollPane scrollPane;
     private static final Random r = new Random();
 
 
@@ -128,9 +132,9 @@ public class ThreadGame extends Thread implements ActionListener{
         for (int i = 0; i < data.length; i++) {
             data[i][0] = v[i][0]+" * " + v[i][1];
         }
-        JTable table = new JTable(data, columnNames);
+        table = new JTable(data, columnNames);
         table.setEnabled(false);
-        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane = new JScrollPane(table);
         
         // Centra il contenuto della tabella
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -193,10 +197,30 @@ public class ThreadGame extends Thread implements ActionListener{
     }
 
     private void gestisciRisultato() {
-        boolean isCorretto;
-        for (int i = 0; i < v.length; i++) {
-            
-        }
+        boolean isCorretto = false;
+        Color backgroundColor;
+            try {
+                int risultato = Integer.parseInt(txtRisultato.getText());
+                if (risultato == v[pos][2]) {
+                    isCorretto = true;
+                    System.out.println("corretto");
+                }else {System.out.println("sbagliato");}
+                txtRisultato.setText("");
+                if(isCorretto)
+                    backgroundColor = new Color(0, 100, 0); // verde scuro
+                else
+                    backgroundColor = new Color(100, 0, 0); // verde scuro
+                CustomTableCellRenderer renderer = new CustomTableCellRenderer(3, 0, backgroundColor);
+                table.getColumnModel().getColumn(0).setCellRenderer(renderer);
+                        // Aggiorna la tabella per mostrare il nuovo colore di sfondo
+                        table.getColumnModel().getColumn(0).setCellRenderer(renderer);
+        table.setValueAt(table.getValueAt(2, 0), 2, 0); // Modifica solo la cella indicata
+        table.repaint();
+        
+            } catch (NumberFormatException e) {
+                // gestione dell'eccezione
+            }
+        pos++;
     }
     
         
