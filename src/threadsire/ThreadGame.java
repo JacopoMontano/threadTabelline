@@ -9,6 +9,7 @@ import static java.awt.BorderLayout.CENTER;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
@@ -25,6 +26,8 @@ import java.time.Instant;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -32,7 +35,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JViewport;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableCellRenderer;
 
@@ -50,11 +52,11 @@ public class ThreadGame extends Thread implements ActionListener{
     private JTextField txtRisultato;
     private Timer timer;
     private int seconds;
-    private int pos;
     private JLabel textTimer;
-    private JTable table;
-    private JScrollPane scrollPane;
     private static final Random r = new Random();
+    private Utente user;
+    
+    private JPanel pnlCenter;
 
 
     public ThreadGame(int threadNum){
@@ -71,8 +73,10 @@ public class ThreadGame extends Thread implements ActionListener{
             v[i][1] = r.nextInt(1, 12);
             v[i][2] = v[i][0] * v[i][1];
         }
-        timer.start();
-        start = Instant.now().toEpochMilli();
+        
+        btnEsci = new JButton("Esci");
+        btnFine = new JButton("Fine");
+        txtRisultato = new JTextField();
         f = new JFrame("Finestra thread" + threadNum);
         f.setSize(300, 300);
         f.setResizable(false);
@@ -82,15 +86,20 @@ public class ThreadGame extends Thread implements ActionListener{
         int x = 300*((threadNum > horizontalFrame?threadNum%horizontalFrame: threadNum)-1);
         int y = 300*((threadNum > horizontalFrame?threadNum/horizontalFrame: 0));
         f.setLocation(x, y);
+        showTitle();
+        showUserInit();
+        /*
         try {
             createFrame();
         } catch (FontFormatException ex) {
         } catch (IOException ex) {
-        }
+        }*/
         associaAscoltatori();
         f.setVisible(true);
         System.out.println("fine");
     }
+    
+    
     
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == btnFine){
@@ -113,7 +122,7 @@ public class ThreadGame extends Thread implements ActionListener{
         txtRisultato.addActionListener(this);
     }
 
-    private void createFrame() throws FontFormatException, IOException {
+    public void showTitle(){
         JPanel pnlNord = new JPanel();
         JLabel lblTitolo = new JLabel("TABELLINE THREAD " + threadNum);
         lblTitolo.setHorizontalAlignment(JLabel.CENTER);
@@ -124,17 +133,72 @@ public class ThreadGame extends Thread implements ActionListener{
         pnlNord.setBackground(Color.BLACK);
         pnlNord.add(lblTitolo);
         f.add(pnlNord, BorderLayout.NORTH);
+        f.setVisible(true);
+    }
+    
+    public void showUserInit(){
         
         
-        JPanel pnlCenter = new JPanel(new GridBagLayout());
+        JLabel lblName = new JLabel("Name:");
+        JTextField txtName = new JTextField();
+        JButton btnConferma = new JButton("conferma");
+        btnConferma.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        pnlCenter = new JPanel();
+        pnlCenter.setLayout(new BoxLayout(pnlCenter, BoxLayout.Y_AXIS));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        JPanel pnlField = new JPanel(new GridBagLayout());
+        
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx=0;
+        gbc.gridy=0;
+        gbc.weightx = 1.0;
+        pnlField.add(lblName, gbc);
+        gbc.gridx=1;
+        gbc.gridy=0;
+        gbc.weightx = 2.0;
+        pnlField.add(txtName, gbc);
+        pnlCenter.setBorder(BorderFactory.createEmptyBorder(25,25,25,25));
+        pnlCenter.add(pnlField);
+        pnlCenter.add(btnConferma);
+        
+        
+        btnConferma.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (txtName.getText().compareTo("") != 0) {
+                    user = new Utente(txtName.getText());
+                    try {
+                        createFrame();
+                    } catch (FontFormatException ex) {
+                        Logger.getLogger(ThreadGame.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ThreadGame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } 
+            }
+        });
+        
+        
+        f.add(pnlCenter, BorderLayout.CENTER);
+        f.setVisible(true);
+    }
+    
+    private void createFrame() throws FontFormatException, IOException {
+        
+        timer.start();
+        start = Instant.now().toEpochMilli();
+        
+        f.remove(pnlCenter);
+        pnlCenter = new JPanel(new GridBagLayout());
         String[] columnNames = {""};
         Object[][] data = new Object[10][1];
         for (int i = 0; i < data.length; i++) {
             data[i][0] = v[i][0]+" * " + v[i][1];
         }
-        table = new JTable(data, columnNames);
+        JTable table = new JTable(data, columnNames);
         table.setEnabled(false);
-        scrollPane = new JScrollPane(table);
+        JScrollPane scrollPane = new JScrollPane(table);
         
         // Centra il contenuto della tabella
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -144,7 +208,7 @@ public class ThreadGame extends Thread implements ActionListener{
         table.setDefaultRenderer(Object.class, centerRenderer);
         
         
-        txtRisultato = new JTextField();
+        
         textTimer.setHorizontalAlignment(JLabel.CENTER);
         Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("DS-DIGIT.TTF")).deriveFont(40f);
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -181,11 +245,11 @@ public class ThreadGame extends Thread implements ActionListener{
         f.add(pnlCenter, BorderLayout.CENTER);
         
         JPanel pnlSud = new JPanel(new GridLayout(1,2));
-        btnEsci = new JButton("Esci");
-        btnFine = new JButton("Fine");
+        
         pnlSud.add(btnEsci);
         pnlSud.add(btnFine);
         f.add(pnlSud, BorderLayout.SOUTH);
+        f.setVisible(true);
     }
 
     private void salvaDati() {
@@ -197,30 +261,10 @@ public class ThreadGame extends Thread implements ActionListener{
     }
 
     private void gestisciRisultato() {
-        boolean isCorretto = false;
-        Color backgroundColor;
-            try {
-                int risultato = Integer.parseInt(txtRisultato.getText());
-                if (risultato == v[pos][2]) {
-                    isCorretto = true;
-                    System.out.println("corretto");
-                }else {System.out.println("sbagliato");}
-                txtRisultato.setText("");
-                if(isCorretto)
-                    backgroundColor = new Color(0, 100, 0); // verde scuro
-                else
-                    backgroundColor = new Color(100, 0, 0); // verde scuro
-                CustomTableCellRenderer renderer = new CustomTableCellRenderer(3, 0, backgroundColor);
-                table.getColumnModel().getColumn(0).setCellRenderer(renderer);
-                        // Aggiorna la tabella per mostrare il nuovo colore di sfondo
-                        table.getColumnModel().getColumn(0).setCellRenderer(renderer);
-        table.setValueAt(table.getValueAt(2, 0), 2, 0); // Modifica solo la cella indicata
-        table.repaint();
-        
-            } catch (NumberFormatException e) {
-                // gestione dell'eccezione
-            }
-        pos++;
+        boolean isCorretto;
+        for (int i = 0; i < v.length; i++) {
+            
+        }
     }
     
         
