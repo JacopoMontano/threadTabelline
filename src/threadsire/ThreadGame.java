@@ -55,20 +55,20 @@ public class ThreadGame extends Thread implements ActionListener{
 
     public ThreadGame(int threadNum){
         this.threadNum = threadNum;
-        start = Instant.now().toEpochMilli();
         timer = new Timer(1000, this);
-        timer.start();
         textTimer = new JLabel("0:00");
-        v = new int [10][2];
-        for (int i = 0; i < v.length; i++) {
-            v[i][0] = r.nextInt(1, 12);
-            v[i][1] = r.nextInt(1, 12);
-        }
-
+        v = new int [10][3];
     }
     
     @Override
     public void run(){
+        for (int i = 0; i < v.length; i++) {
+            v[i][0] = r.nextInt(1, 12);
+            v[i][1] = r.nextInt(1, 12);
+            v[i][2] = v[i][0] * v[i][1];
+        }
+        timer.start();
+        start = Instant.now().toEpochMilli();
         f = new JFrame("Finestra thread" + threadNum);
         f.setSize(300, 300);
         f.setResizable(false);
@@ -98,12 +98,15 @@ public class ThreadGame extends Thread implements ActionListener{
             int minutes = seconds / 60;
             int remainingSeconds = seconds % 60;
             textTimer.setText(minutes + ":" + (remainingSeconds < 10 ? "0" : "") + remainingSeconds);
+        }else if(e.getSource() == txtRisultato){
+            gestisciRisultato();
         }
     }
 
     private void associaAscoltatori() {
         btnEsci.addActionListener(this);
         btnFine.addActionListener(this);
+        txtRisultato.addActionListener(this);
     }
 
     private void createFrame() throws FontFormatException, IOException {
@@ -187,6 +190,13 @@ public class ThreadGame extends Thread implements ActionListener{
 
     private void gestisciEsci() {
         f.dispose();
+    }
+
+    private void gestisciRisultato() {
+        boolean isCorretto;
+        for (int i = 0; i < v.length; i++) {
+            
+        }
     }
     
         
