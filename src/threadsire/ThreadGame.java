@@ -37,6 +37,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
 /**
  *
@@ -52,7 +54,11 @@ public class ThreadGame extends Thread implements ActionListener{
     private JTextField txtRisultato;
     private Timer timer;
     private int seconds;
+    private int pos;
+    private JTable table;
+    private JScrollPane scrollPane;
     private JLabel textTimer;
+    private boolean[] corretti;
     private static final Random r = new Random();
     private Utente user;
     
@@ -64,6 +70,7 @@ public class ThreadGame extends Thread implements ActionListener{
         timer = new Timer(1000, this);
         textTimer = new JLabel("0:00");
         v = new int [10][3];
+        corretti = new boolean[10];
     }
     
     @Override
@@ -113,6 +120,10 @@ public class ThreadGame extends Thread implements ActionListener{
             textTimer.setText(minutes + ":" + (remainingSeconds < 10 ? "0" : "") + remainingSeconds);
         }else if(e.getSource() == txtRisultato){
             gestisciRisultato();
+            if(pos == 10){
+                txtRisultato.setEnabled(false);
+                timer.stop();
+            }
         }
     }
 
@@ -196,13 +207,19 @@ public class ThreadGame extends Thread implements ActionListener{
         for (int i = 0; i < data.length; i++) {
             data[i][0] = v[i][0]+" * " + v[i][1];
         }
-        JTable table = new JTable(data, columnNames);
+        table = new JTable(data, columnNames);
         table.setEnabled(false);
-        JScrollPane scrollPane = new JScrollPane(table);
+        
+
+        scrollPane = new JScrollPane(table);
         
         // Centra il contenuto della tabella
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        table.getColumnModel().getColumn(0).setPreferredWidth(100); // Imposta la larghezza della colonna 0
+
+
+        
+        
+        //table.getColumnModel().getColumn(0).setPreferredWidth(100); // Imposta la larghezza della colonna 0
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
         table.setDefaultRenderer(Object.class, centerRenderer);
@@ -260,12 +277,36 @@ public class ThreadGame extends Thread implements ActionListener{
         f.dispose();
     }
 
-    private void gestisciRisultato() {
-        boolean isCorretto;
-        for (int i = 0; i < v.length; i++) {
-            
-        }
+   private void gestisciRisultato() {
+    int risultato = Integer.parseInt(txtRisultato.getText());
+    boolean isCorretto = v[pos][2] == risultato;
+    txtRisultato.setText("");
+    if (isCorretto) {
+        corretti[pos] = true;
+
+    } else {
+        corretti[pos] = false;
     }
     
+    table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
+    public Component getTableCellRendererComponent (JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+    {
+    Component cell = super.getTableCellRendererComponent (table, value, isSelected, hasFocus, row, column);
+        System.out.println(row);
+    if(pos <= row)
+        cell.setBackground( Color.white );
+    else if(corretti[row])
+        cell.setBackground( Color.green );
+    else
+        cell.setBackground( Color.red );
+    return cell;
+
+    }});
+    
+    table.repaint();
+    pos++;
+}
+
+
         
 }
